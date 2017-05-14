@@ -90,6 +90,14 @@ UserSchema.statics.findByCredentials = function(email, password) {
     });
 };
 
+UserSchema.methods.removeToken = function(token) {
+    var user = this;
+    return user.update({
+        $pull: {
+            tokens: { token }
+        }
+    })
+}
 
 //mongoose middleware... pre method
 UserSchema.pre('save', function(next) {
