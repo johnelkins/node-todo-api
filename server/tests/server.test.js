@@ -254,22 +254,22 @@ describe('POST /users', () => {
 
 });
 
-describe('this block of tests will be for POST /users/login', () => {
-    it('should login user and return auth token', (done) => {
-        request(app)
-            .post('/users/login')
-            .send({
-                email: users[1].email,
-                password: users[1].password
-            })
-            .expect(200)
-            .expect((res) => {
-                expect(res.headers['x-auth']).toExist();
-            })
-            .end((err, res) => {
-                if (err) {
-                    return done(err);
-                }
+describe('POST /users/login', () => {
+  it('should login user and return auth token', (done) => {
+    request(app)
+      .post('/users/login')
+      .send({
+        email: users[1].email,
+        password: users[1].password
+      })
+      .expect(200)
+      .expect((res) => {
+        expect(res.headers['x-auth']).toExist();
+      })
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
 
                 User.findById(users[1]._id).then((user) => {
                     expect(user.tokens[0]).toInclude({
@@ -281,21 +281,21 @@ describe('this block of tests will be for POST /users/login', () => {
             });
     });
 
-    it('should return an invalid login', (done) => {
-        request(app)
-            .post('/users/login')
-            .send({
-                email: users[1].email,
-                password: users[1].password = '1'
-            })
-            .expect(400)
-            .expect((res) => {
-                expect(res.headers['x-auth']).toNotExist();
-            })
-            .end((err, res) => {
-                if (err) {
-                    return done(err);
-                }
+  it('should reject invalid login', (done) => {
+    request(app)
+      .post('/users/login')
+      .send({
+        email: users[1].email,
+        password: users[1].password + '1'
+      })
+      .expect(400)
+      .expect((res) => {
+        expect(res.headers['x-auth']).toNotExist();
+      })
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
 
                 User.findById(users[1]._id).then((user) => {
                     expect(user.tokens.length).toBe(0);
@@ -304,4 +304,28 @@ describe('this block of tests will be for POST /users/login', () => {
             });
     });
 
+});
+
+describe('DELETE /users/me/token', () => {
+    it('should remove auth token on logout', (done) => {
+        // DELETE /users/me/token
+        // Set x-auth = to token
+        // 200
+        // Find user, verify that tokens array has length of zero
+        request(app)
+            .delete('/users/me/token')
+            .set('x-auth', users[0].tokens[0].token)
+            .expect(200)
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+
+                User.findById(users[0]._id).then((user) => {
+                    expect(user.tokens.length).toBe(0);
+                    done();
+                }).catch((e) => done(e));
+            });
+
+    });
 });
